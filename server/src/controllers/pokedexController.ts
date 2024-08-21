@@ -45,7 +45,8 @@ export const getAllCaughtPokemons = async () => {
 }
 export const isPokemonCaught = async (id: string) => {
     try {
-        return Boolean(redisClient.sismember('caughtPokemons', id));
+        const isCaught = await redisClient.sismember('caughtPokemons', id)
+        return Boolean(isCaught);
     } catch (err) {
         console.error(`Error checking if Pokemon with the id of ${id} was caught: `, err);
         throw new Error(`Failed to check the status of Pokemon with the id of ${id}`);
