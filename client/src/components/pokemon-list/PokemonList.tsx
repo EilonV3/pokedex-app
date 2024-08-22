@@ -22,22 +22,23 @@ import { Pokemon } from '../../types/Pokemon';
 const PokemonList: React.FC = () => {
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(30);
+    const [resultsPerPage, setResultsPerPage] = useState(10);
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
     const [experienceRange, setExperienceRange] = useState<number[]>([0, 1000]);
     const [showLegendaryOnly, setShowLegendaryOnly] = useState<boolean>(false);
-    const [totalCount,setTotalCount] = useState();
+    const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
+
     useEffect(() => {
         fetchPokemons();
-    }, [page, rowsPerPage]);
+    }, [page, resultsPerPage]);
 
     const fetchPokemons = async () => {
         try {
             const response = await axios.get(`/api/pokemons`, {
                 params: {
-                    limit: rowsPerPage,
-                    offset: page * rowsPerPage,
+                    limit: resultsPerPage,
+                    offset: page * resultsPerPage,
                     name: search,
                     types: typeFilter,
                     min_experience: experienceRange[0],
@@ -46,7 +47,7 @@ const PokemonList: React.FC = () => {
                 },
             });
             setPokemons(response.data.pokemons);
-            setTotalCount(response.data.totalCount)
+            setTotalCount(response.data.totalCount);
         } catch (error) {
             console.error('Error fetching pokemons:', error);
         }
@@ -76,8 +77,13 @@ const PokemonList: React.FC = () => {
         setPage(newPage - 1);
     };
 
+    const handleRowsPerPageChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+        setResultsPerPage(parseInt(event.target.value as string, 10));
+        setPage(0);
+    };
+
     return (
-        <Container sx={{ maxWidth: '100%', padding: '2rem' }}>
+        <Container sx={{ maxWidth: '100%', padding: '2rem', fontFamily: '"Roboto", sans-serif' }}>
             <Typography
                 variant="h2"
                 gutterBottom
@@ -87,7 +93,6 @@ const PokemonList: React.FC = () => {
                 Pokémon List
             </Typography>
 
-            {/* Button Group */}
             <Box mb={4} display="flex" justifyContent="space-between" flexWrap="wrap" gap="1rem">
                 <TextField
                     sx={{ flex: '1 1 auto', maxWidth: "12rem", height: "4rem" }}
@@ -131,7 +136,6 @@ const PokemonList: React.FC = () => {
                 </Button>
             </Box>
 
-            {/* Experience Range Slider */}
             <Box mb={4}>
                 <Typography gutterBottom>Experience Range</Typography>
                 <Slider
@@ -144,41 +148,73 @@ const PokemonList: React.FC = () => {
                     aria-labelledby="experience-range-slider"
                 />
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', paddingBottom: '2rem' }}>
-                <Grid container spacing={2}>
-                    {pokemons.map((pokemon) => (
-                        <Grid item xs={12} sm={6} md={3} key={pokemon.id}>
-                            <Card>
-                                <CardMedia
-                                    component="img"
-                                    height="140"
-                                    image={`https://img.pokemondb.net/artwork/large/${pokemon.name}.jpg`}
-                                    alt={pokemon.name}
-                                />
-                                <CardContent>
-                                    <Typography variant="h6">{pokemon.name}</Typography>
-                                    <Typography color="textSecondary">Base Experience: {pokemon.base_experience}</Typography>
-                                    <Typography color="textSecondary">Types: {pokemon.types.join(', ')}</Typography>
-                                    {pokemon.isLegendary && <Typography color="textPrimary">Legendary!!</Typography>}
-                                </CardContent>
-                                <Box p={2} display="flex" justifyContent="center">
-                                    <Button variant="contained" color="primary">
-                                        Catch Pokémon
-                                    </Button>
-                                </Box>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
-            </Box>
+            <Grid container spacing={6}>
+                {pokemons.map((pokemon) => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={pokemon.id}>
+                        <Card
+                            sx={{
+                                minWidth: '14rem',
+                                height: '100%',
+                                minHeight: '16rem',
+                                maxHeight: '20rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                border: pokemon.isLegendary ? '4px solid gold' : '',
+                                boxShadow: pokemon.isLegendary
+                                    ? '0 0 10px 5px rgba(255, 215, 0, 0.5)'
+                                    : '',
+                                animation: pokemon.isLegendary
+                                    ? 'glow 1.5s infinite alternate'
+                                    : 'none',
+                                '@keyframes glow': {
+                                    '0%': { boxShadow: '0 0 5px gold' },
+                                    '100%': { boxShadow: '0 0 20px gold' },
+                                },
+                            }}
+                        >
+                            <CardMedia
+                                component="img"
+                                height="140"
+                                image={`https://img.pokemondb.net/artwork/large/${pokemon.name}.jpg`}
+                                alt={pokemon.name}
+                            />
+                            <CardContent>
+                                <Typography variant="h6">{pokemon.name}</Typography>
+                                <Typography color="textSecondary">Base Experience: {pokemon.base_experience}</Typography>
+                                <Typography color="textSecondary">Types: {pokemon.types.join(', ')}</Typography>
+                                {pokemon.isLegendary && <Typography color="textPrimary">Legendary!!</Typography>}
+                            </CardContent>
+                            <Box p={2} display="flex" justifyContent="center">
+                                <Button variant="contained" color="primary">
+                                    Catch Pokémon
+                                </Button>
+                            </Box>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
             <Box display="flex" justifyContent="center" mt={4}>
                 <Pagination
-                    count={Math.ceil(totalCount / rowsPerPage)}
+                    count={Math.ceil(totalCount! / resultsPerPage)}
                     page={page + 1}
                     onChange={handleChangePage}
                     color="primary"
                     shape="rounded"
+                    sx={{ margin: "1rem" }}
                 />
+                <FormControl sx={{ width: "8rem", height: "4rem", textAlign: "center" }} variant="outlined">
+                    <InputLabel>Results per page</InputLabel>
+                    <Select
+                        value={resultsPerPage.toString()}
+                        onChange={handleRowsPerPageChange}
+                        label="Results per page"
+                    >
+                        <MenuItem value={10}>10</MenuItem>
+                        <MenuItem value={20}>20</MenuItem>
+                        <MenuItem value={30}>30</MenuItem>
+                    </Select>
+                </FormControl>
             </Box>
         </Container>
     );

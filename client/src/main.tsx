@@ -2,20 +2,19 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import './index.css';
 
 // Create a custom theme
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#1976d2', // Customize these colors as needed
+            main: '#1976d2',
         },
         secondary: {
             main: '#dc004e',
         },
     },
     typography: {
-        fontFamily: 'Pokémon', // Add your custom font family here
+        fontFamily: '"Orbitron", sans-serif',
     },
 });
 
