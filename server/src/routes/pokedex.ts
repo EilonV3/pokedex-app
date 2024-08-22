@@ -11,9 +11,8 @@ router.get("/pokemons", async (req, res) => {
         const name = req.query.name as string;
         const minExperience = parseInt(req.query.minExperience as string);
         const maxExperience = parseInt(req.query.maxExperience as string);
-        const type = req.query.type as string;
-
-        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, type);
+        const types = req.query.types as string[];
+        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, types);
         res.json(data);
     } catch (err: any) {
         res.status(500).json({ message: err.message });

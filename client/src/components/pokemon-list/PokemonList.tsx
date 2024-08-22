@@ -21,11 +21,10 @@ import { Pokemon } from '../../types/Pokemon';
 const PokemonList: React.FC = () => {
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(30);
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
     const [experienceRange, setExperienceRange] = useState<number[]>([0, 1000]);
-    console.log(typeFilter)
 
     const fetchPokemons = async () => {
         try {
@@ -34,7 +33,7 @@ const PokemonList: React.FC = () => {
                     limit: rowsPerPage,
                     offset: page * rowsPerPage,
                     name: search,
-                    type: typeFilter.join(','),
+                    types: typeFilter,
                     min_experience: experienceRange[0],
                     max_experience: experienceRange[1],
                 },
@@ -65,6 +64,7 @@ const PokemonList: React.FC = () => {
 
     const handleTypeFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
         setTypeFilter(event.target.value as string[]);
+        setPage(0);
     };
 
     const handleExperienceRangeChange = (event: Event, newValue: number | number[]) => {
@@ -73,7 +73,7 @@ const PokemonList: React.FC = () => {
 
     return (
         <Container>
-            <Typography variant="h3" gutterBottom align="center" style={{ color: '#ffcb05', fontFamily: '"Pokemon Solid", sans-serif'}}>
+            <Typography variant="h2" gutterBottom align="center" style={{ color: '#ffcb05', fontFamily: '"Pokemon Solid", sans-serif', paddingTop: "2rem"}}>
                 Pokémon List
             </Typography>
             <Box mb={4}>
@@ -94,10 +94,10 @@ const PokemonList: React.FC = () => {
                                 multiple
                                 value={typeFilter}
                                 onChange={handleTypeFilterChange}
-                                renderValue={(selected) => (selected as string[]).join(', ')}
+                                // renderValue={(selected) => (selected as string[]).join(', ')}
                                 label="Type"
                             >
-                                <MenuItem value="">All</MenuItem>
+                                <MenuItem value="">Clear All</MenuItem>
                                 <MenuItem value="grass">Grass</MenuItem>
                                 <MenuItem value="fire">Fire</MenuItem>
                                 <MenuItem value="water">Water</MenuItem>

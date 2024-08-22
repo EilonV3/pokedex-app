@@ -12,13 +12,11 @@ interface Pokemon {
     types: string[];
 }
 
-export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, type?: string) => {
+export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[]) => {
     try {
         let pokemons;
-
-        // Check if data is already cached
         const cachedPokemons = await redisClient.get("pokemons");
-        console.log(cachedPokemons);
+
         if (cachedPokemons) {
             console.log('using cacheeeee yessss')
             pokemons = JSON.parse(cachedPokemons);
@@ -52,9 +50,12 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
         if (maxExperience) {
             pokemons = pokemons.filter((pokemon: any) => pokemon.base_experience <= maxExperience);
         }
+        const typesArray = types || []
 
-        if (type) {
-            pokemons = pokemons.filter((pokemon: any) => pokemon.types.includes(type));
+        if (typesArray.length > 0) {
+            pokemons = pokemons.filter((pokemon: { types: string[]; }) =>
+                pokemon.types.some((type: string) => typesArray.includes(type))
+            );
         }
 
         const paginatedPokemons = pokemons.slice(offset, offset + limit);
