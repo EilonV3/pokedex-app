@@ -5,13 +5,19 @@ import redisClient from "../utils/redisClient";
 const router = express.Router();
 
 router.get("/pokemons", async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit as string) || 10;
-    const data = await getPokemons(limit);
-    res.json(data);
-  } catch (err: any) {
-    res.status(500).json({ message: err.message });
-  }
+    try {
+        const limit = parseInt(req.query.limit as string) || 10;
+        const offset = parseInt(req.query.offset as string) || 0;
+        const name = req.query.name as string;
+        const minExperience = parseInt(req.query.minExperience as string);
+        const maxExperience = parseInt(req.query.maxExperience as string);
+        const type = req.query.type as string;
+
+        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, type);
+        res.json(data);
+    } catch (err: any) {
+        res.status(500).json({ message: err.message });
+    }
 });
 
 router.get("/pokemon/:id", async (req, res) => {

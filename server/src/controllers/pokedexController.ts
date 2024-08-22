@@ -5,15 +5,62 @@ import redisClient from "../utils/redisClient";
 dotenv.config();
 const POKEAPI_BASE_URL = process.env.POKEAPI_BASE_URL;
 
-export const getPokemons = async (limit: number) => {
-  try {
-    const response = await axios.get(
-      `${POKEAPI_BASE_URL}/pokemon?limit=${limit}`,
-    );
-    return response.data;
-  } catch (err: any) {
-    throw new Error(err.message);
-  }
+interface Pokemon {
+    id: number;
+    name: string;
+    base_experience: number;
+    types: string[];
+}
+
+export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, type?: string) => {
+    try {
+        let pokemons;
+
+        // Check if data is already cached
+        const cachedPokemons = await redisClient.get("pokemons");
+
+        if (cachedPokemons) {
+            pokemons = JSON.parse(cachedPokemons);
+        } else {
+            const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon?limit=10000&offset=0`);
+            const results = response.data.results;
+
+            const detailedPokemons = await Promise.all(results.map(async (pokemon: any) => {
+                const pokemonData = await axios.get(pokemon.url);
+                return {
+                    id: pokemonData.data.id,
+                    name: pokemonData.data.name,
+                    base_experience: pokemonData.data.base_experience,
+                    types: pokemonData.data.types.map((t: any) => t.type.name),
+                };
+            }));
+            await redisClient.set("pokemons", JSON.stringify(detailedPokemons), 'EX', 3600);
+
+            pokemons = detailedPokemons;
+        }
+
+        if (name) {
+            pokemons = pokemons.filter((pokemon: any) => pokemon.name.includes(name));
+        }
+
+        if (minExperience) {
+            pokemons = pokemons.filter((pokemon: any) => pokemon.base_experience >= minExperience);
+        }
+
+        if (maxExperience) {
+            pokemons = pokemons.filter((pokemon: any) => pokemon.base_experience <= maxExperience);
+        }
+
+        if (type) {
+            pokemons = pokemons.filter((pokemon: any) => pokemon.types.includes(type));
+        }
+
+        const paginatedPokemons = pokemons.slice(offset, offset + limit);
+
+        return paginatedPokemons;
+    } catch (err: any) {
+        throw new Error(err.message);
+    }
 };
 
 export const getPokemonById = async (id: string) => {
