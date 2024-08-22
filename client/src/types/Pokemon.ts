@@ -3,4 +3,5 @@ export interface Pokemon {
     name: string;
     base_experience: number;
     types: string[];
+    isLegendary: boolean;
 }

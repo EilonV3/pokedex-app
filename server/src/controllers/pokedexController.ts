@@ -10,37 +10,44 @@ interface Pokemon {
     name: string;
     base_experience: number;
     types: string[];
+    isLegendary?: boolean;
 }
-
-export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[]) => {
+const isPokemonLegendary = async (id: number) => {
+    const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon-species/${id}/`);
+    return response.data.is_legendary;
+};
+export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[], showLegendaryOnly?: string) => {
     try {
         let pokemons;
         const cachedPokemons = await redisClient.get("pokemons");
-
         if (cachedPokemons) {
-            console.log('using cacheeeee yessss')
             pokemons = JSON.parse(cachedPokemons);
         } else {
-            console.log('making api call')
-            const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon?limit=10000&offset=0`);
+            const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon?limit=500&offset=0`);
             const results = response.data.results;
-
             const detailedPokemons = await Promise.all(results.map(async (pokemon: any) => {
                 const pokemonData = await axios.get(pokemon.url);
+                const isLegendary = await isPokemonLegendary(pokemonData.data.id);
                 return {
                     id: pokemonData.data.id,
                     name: pokemonData.data.name,
                     base_experience: pokemonData.data.base_experience,
                     types: pokemonData.data.types.map((t: any) => t.type.name),
+                    isLegendary,
                 };
             }));
-            await redisClient.set("pokemons", JSON.stringify(detailedPokemons), 'EX', 3600);
+            await redisClient.set("pokemons", JSON.stringify(detailedPokemons));
 
             pokemons = detailedPokemons;
         }
 
         if (name) {
             pokemons = pokemons.filter((pokemon: any) => pokemon.name.includes(name));
+        }
+        const showLegendaryOnlyFlag = showLegendaryOnly === "true";
+
+        if (showLegendaryOnlyFlag) {
+            pokemons = pokemons.filter((pokemon:any) => pokemon.isLegendary);
         }
 
         if (minExperience) {

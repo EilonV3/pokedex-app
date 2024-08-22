@@ -25,7 +25,7 @@ const PokemonList: React.FC = () => {
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
     const [experienceRange, setExperienceRange] = useState<number[]>([0, 1000]);
-
+    const [showLegendaryOnly, setShowLegendaryOnly] = useState<boolean>(false)
     const fetchPokemons = async () => {
         try {
             const response = await axios.get(`/api/pokemons`, {
@@ -36,6 +36,7 @@ const PokemonList: React.FC = () => {
                     types: typeFilter,
                     min_experience: experienceRange[0],
                     max_experience: experienceRange[1],
+                    show_legendary_only: showLegendaryOnly
                 },
             });
             setPokemons(response.data);
@@ -70,6 +71,7 @@ const PokemonList: React.FC = () => {
     const handleExperienceRangeChange = (event: Event, newValue: number | number[]) => {
         setExperienceRange(newValue as number[]);
     };
+    const handleShowLegendary = () => setShowLegendaryOnly(!showLegendaryOnly);
 
     return (
         <Container>
@@ -79,8 +81,7 @@ const PokemonList: React.FC = () => {
             <Box mb={4}>
                 <Grid container spacing={3} justifyContent="center">
                     <Grid item xs={12} sm={6} md={4}>
-                        <TextField
-                            fullWidth
+                        <TextField sx={{width: "12rem", height: "4rem"}}
                             label="Search Pokémon"
                             variant="outlined"
                             value={search}
@@ -88,13 +89,18 @@ const PokemonList: React.FC = () => {
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
+                        <Button sx={{width: "12rem", height: "3.5rem"}}
+                            variant="outlined"
+                            onClick={handleShowLegendary}
+                        >{showLegendaryOnly ? 'Show All': 'Show Legendary'}</Button>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
                         <FormControl fullWidth variant="outlined">
                             <InputLabel>Type</InputLabel>
-                            <Select
+                            <Select  sx={{width: "12rem", height: "3.5rem", padding: "1rem"}}
                                 multiple
                                 value={typeFilter}
                                 onChange={handleTypeFilterChange}
-                                // renderValue={(selected) => (selected as string[]).join(', ')}
                                 label="Type"
                             >
                                 <MenuItem value="">Clear All</MenuItem>
@@ -142,6 +148,7 @@ const PokemonList: React.FC = () => {
                                 <Typography variant="h6">{pokemon.name}</Typography>
                                 <Typography color="textSecondary">Base Experience: {pokemon.base_experience}</Typography>
                                 <Typography color="textSecondary">Types: {pokemon.types.join(', ')}</Typography>
+                                {pokemon.isLegendary && <Typography color="textPrimary">Legendary!!</Typography>}
                             </CardContent>
                             <Box p={2} display="flex" justifyContent="center">
                                 <Button variant="contained" color="primary" onClick={() => console.log('clicked on pokemon', pokemon.name)}>

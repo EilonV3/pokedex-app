@@ -9,10 +9,11 @@ router.get("/pokemons", async (req, res) => {
         const limit = parseInt(req.query.limit as string) || 10;
         const offset = parseInt(req.query.offset as string) || 0;
         const name = req.query.name as string;
-        const minExperience = parseInt(req.query.minExperience as string);
-        const maxExperience = parseInt(req.query.maxExperience as string);
+        const minExperience = parseInt(req.query.min_experience as string);
+        const maxExperience = parseInt(req.query.max_experience as string);
+        const showLegendaryOnly = req.query.show_legendary_only as string;
         const types = req.query.types as string[];
-        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, types);
+        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, types, showLegendaryOnly);
         res.json(data);
     } catch (err: any) {
         res.status(500).json({ message: err.message });
