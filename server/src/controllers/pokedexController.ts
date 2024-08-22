@@ -66,8 +66,8 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
         }
 
         const paginatedPokemons = pokemons.slice(offset, offset + limit);
-
-        return paginatedPokemons;
+        const totalCount = pokemons.length;
+        return { pokemons: paginatedPokemons, totalCount };
     } catch (err: any) {
         throw new Error(err.message);
     }
