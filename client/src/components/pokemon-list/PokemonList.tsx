@@ -1,23 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, {ChangeEvent, useEffect, useState} from 'react';
 import {
     Container,
     Grid,
     Typography,
-    TextField,
     MenuItem,
     Select,
     InputLabel,
     FormControl,
-    Card,
-    CardContent,
-    CardMedia,
-    Button,
     Box,
-    Slider,
-    Pagination, Checkbox, FormControlLabel
+    Pagination, SelectChangeEvent,
 } from '@mui/material';
 import axios from 'axios';
 import { Pokemon } from '../../types/Pokemon';
+import PokemonCard from "../pokemon-card/PokemonCard.tsx";
+import PokemonFilter from "../pokemon-filter/PokemonFilter.tsx";
 
 const PokemonList: React.FC = () => {
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
@@ -28,7 +24,7 @@ const PokemonList: React.FC = () => {
     const [experienceRange, setExperienceRange] = useState<number[]>([0, 1000]);
     const [showLegendaryOnly, setShowLegendaryOnly] = useState<boolean>(false);
     const [totalCount, setTotalCount] = useState<number | undefined>(0);
-    const [sortOption, setSortOption] = useState<'name-asc' | 'name-desc' | 'experience-asc' | 'experience-desc'>();
+    const [sortOption, setSortOption] = useState<string>('');
     const [showCaughtOnly, setShowCaughtOnly] = useState(false);
 
     useEffect(() => {
@@ -82,7 +78,7 @@ const PokemonList: React.FC = () => {
     //     setPage(0);
     // };
 
-    const handleExperienceRangeChange = (event: Event, newValue: number | number[]) => {
+    const handleExperienceRangeChange = (_event: ChangeEvent, newValue: number[]) => {
         setExperienceRange(newValue as number[]);
     };
 
@@ -92,7 +88,7 @@ const PokemonList: React.FC = () => {
 
     const handleShowLegendary = () => setShowLegendaryOnly(!showLegendaryOnly);
 
-    const handleChangePage = (event: unknown, newPage: number) => {
+    const handleChangePage = (_event: unknown, newPage: number) => {
         setPage(newPage - 1);
     };
 
@@ -105,7 +101,21 @@ const PokemonList: React.FC = () => {
         setSortOption(event.target.value as 'name-asc' | 'name-desc' | 'experience-asc' | 'experience-desc');
         setPage(0);
     };
-
+    const handleTypeFilterChange = (event: SelectChangeEvent<string[]>) => {
+        const value = event.target.value as string;
+        if (value.includes("")) {
+            setTypeFilter([]);
+        } else {
+            // @ts-ignore
+            setTypeFilter(value);
+        }
+    }
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            fetchPokemons();
+            setPage(0);
+        }
+    };
     return (
         <Container sx={{ minWidth: '100%', fontFamily: '"Roboto", sans-serif' }}>
             <Typography
@@ -122,174 +132,28 @@ const PokemonList: React.FC = () => {
             </Typography>
 
             <Box  mb={4} display="flex" justifyContent="space-between" flexWrap="wrap" gap="1rem" >
-                <TextField
-                    sx={{ flex: '1 1 auto', maxWidth: "12rem", height: "4rem" }}
-                    label="Search Pokémon"
-                    variant="outlined"
-                    value={search}
-                    onChange={handleSearchChange}
+                <PokemonFilter
+                    search={search}
+                    onSearchChange={handleSearchChange}
+                    onSearchClick={handleSearchClick}
+                    showLegendaryOnly={showLegendaryOnly}
+                    onShowLegendaryToggle={handleShowLegendary}
+                    typeFilter={typeFilter}
+                    onTypeFilterChange={handleTypeFilterChange}
+                    sortOption={sortOption}
+                    onSortOptionChange={handleSortOptionChange}
+                    experienceRange={experienceRange}
+                    onExperienceRangeChange={handleExperienceRangeChange}
+                    showCaughtOnly={showCaughtOnly}
+                    onShowCaughtOnlyChange={handleShowCaughtOnlyChange}
+                    onKeyDown={handleKeyDown}
                 />
-                <Button
-                    sx={{ flex: '1 1 auto', minWidth: "2rem", maxWidth: "12rem", height: "3.5rem" }}
-                    variant="outlined"
-                    onClick={handleShowLegendary}
-                >
-                    {showLegendaryOnly ? 'Show All' : 'Show Legendary'}
-                </Button>
-                <FormControl sx={{ flex: '1 1 auto', width: "4rem", maxWidth: "12rem", height: "3.5rem" }} variant="outlined">
-                    <InputLabel>Type</InputLabel>
-                    <Select
-                        multiple
-                        value={typeFilter}
-                        onChange={(event) => {
-                            const value = event.target.value;
-                            if (value.includes("")) {
-                                setTypeFilter([]);
-                            } else {
-                                // @ts-ignore
-                                setTypeFilter(value);
-                            }
-                        }}
-                        label="Type"
-                    >
-                        <MenuItem value="">Clear All</MenuItem>
-                        <MenuItem value="grass">Grass</MenuItem>
-                        <MenuItem value="fire">Fire</MenuItem>
-                        <MenuItem value="water">Water</MenuItem>
-                        <MenuItem value="electric">Electric</MenuItem>
-                        <MenuItem value="normal">Normal</MenuItem>
-                        <MenuItem value="poison">Poison</MenuItem>
-                        <MenuItem value="flying">Flying</MenuItem>
-                    </Select>
-                </FormControl>
-                <FormControl variant="outlined" sx={{ minWidth: 200, width: "4rem" }}>
-                    <InputLabel>Sort By</InputLabel>
-                    <Select
-                        value={sortOption}
-                        // @ts-ignore
-                        onChange={handleSortOptionChange}
-                        label="Sort By"
-                    >
-                        <MenuItem value="name-asc">Name Ascending</MenuItem>
-                        <MenuItem value="name-desc">Name Descending</MenuItem>
-                        <MenuItem value="experience-asc">Experience Ascending</MenuItem>
-                        <MenuItem value="experience-desc">Experience Descending</MenuItem>
-                    </Select>
-                </FormControl>
-                <Box sx={{maxWidth: '80%'}}>
-                    <Typography gutterBottom>Experience Range</Typography>
-                    <Slider
-                        value={experienceRange}
-                        onChange={handleExperienceRangeChange}
-                        valueLabelDisplay="auto"
-                        min={0}
-                        max={1000}
-                        step={10}
-                        aria-labelledby="experience-range-slider"
-                    />
-                </Box>
-                <FormControlLabel
-                    control={
-                        <Checkbox
-                            checked={showCaughtOnly}
-                            onChange={handleShowCaughtOnlyChange}
-                            color="primary"
-                        />
-                    }
-                    label="Show Caught Only"
-                />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ flex: '1 1 auto', maxWidth: "8rem", height: "3.5rem" }}
-                    onClick={handleSearchClick}
-                >
-                    Search
-                </Button>
             </Box>
 
             <Grid container spacing={4} >
                 {pokemons.map((pokemon) => (
                     <Grid item md={2} key={pokemon.id}>
-                        <Card
-                            sx={{
-                                width: '14rem',
-                                height: '100%',
-                                maxHeight: '22rem',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'space-between',
-                                border: pokemon.isLegendary ? '4px solid gold' : '4px solid transparent',
-                                boxShadow: pokemon.isLegendary
-                                    ? '0 0 10px 5px rgba(255, 215, 0, 0.5)'
-                                    : '',
-                                animation: pokemon.isLegendary
-                                    ? 'glow 0.8s infinite alternate'
-                                    : 'none',
-                                '@keyframes glow': {
-                                    '0%': { boxShadow: '0 0 5px gold' },
-                                    '100%': { boxShadow: '1px 1px 16px gold' },
-                                },
-                            }}
-                        >
-                            <CardMedia
-                                component="img"
-                                sx={{
-                                    height: '120px',
-                                    objectFit: 'contain',
-                                    padding: '8px',
-                                }}
-                                image={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${pokemon.id}.svg`}
-                                alt={pokemon.name}
-                            />
-                            <CardContent sx={{ padding: '8px', textAlign: 'center' }}>
-                                <Typography variant="h6">{pokemon.name}</Typography>
-                                <Typography color="textSecondary">
-                                    Base Experience: {pokemon.base_experience}
-                                </Typography>
-                                <Typography color="textSecondary">
-                                    Types: {pokemon.types.join(', ')}
-                                </Typography>
-                                {pokemon.isLegendary && (
-                                    <Typography
-                                        color="textPrimary"
-                                        sx={{
-                                            fontSize: '1.5rem',
-                                            fontWeight: 'bold',
-                                            background: 'linear-gradient(135deg, #FFD700 0%, #FFB800 100%)',
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                            animation: 'pulse 1.5s infinite',
-                                            '@keyframes pulse': {
-                                                '0%': { transform: 'scale(1)', textShadow: '0 0 1px rgba(255, 223, 0, 0.8), 0 0 2px rgba(255, 223, 0, 0.6)' },
-                                                '50%': { transform: 'scale(1.1)', textShadow: '0 0 2px rgba(255, 223, 0, 1), 0 0 8px rgba(255, 223, 0, 0.8)' },
-                                                '100%': { transform: 'scale(1)', textShadow: '0 0 1px rgba(255, 223, 0, 0.8), 0 0 2px rgba(255, 223, 0, 0.6)' },
-                                            },
-                                        }}
-                                    >
-                                        Legendary
-                                    </Typography>
-                                )}
-                            </CardContent>
-                            <Box p={1} display="flex" justifyContent="center">
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => handleCatchPokemon(pokemon.id)}
-                                    sx={{
-                                        backgroundColor: pokemon.isCaught ? 'green' : 'primary.main',
-                                        animation: pokemon.isCaught ? 'caught 1s ease-in-out' : 'none',
-                                        '@keyframes caught': {
-                                            '0%': { transform: 'scale(1)' },
-                                            '50%': { transform: 'scale(1.2)' },
-                                            '100%': { transform: 'scale(1)' },
-                                        },
-                                    }}
-                                >
-                                    {pokemon.isCaught ? 'Caught!' : 'Catch Pokémon'}
-                                </Button>
-                            </Box>
-                        </Card>
+                        <PokemonCard pokemon={pokemon} onCatch={handleCatchPokemon}/>
                     </Grid>
 
                 ))}
