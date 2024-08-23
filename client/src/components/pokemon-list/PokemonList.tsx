@@ -33,7 +33,7 @@ const PokemonList: React.FC = () => {
 
     useEffect(() => {
         fetchPokemons();
-    }, [page, resultsPerPage]);
+    }, [page, resultsPerPage, showCaughtOnly, showLegendaryOnly, sortOption]);
 
     const fetchPokemons = async () => {
         try {
@@ -126,13 +126,13 @@ const PokemonList: React.FC = () => {
                     onChange={handleSearchChange}
                 />
                 <Button
-                    sx={{ flex: '1 1 auto', maxWidth: "12rem", height: "3.5rem" }}
+                    sx={{ flex: '1 1 auto', minWidth: "2rem", maxWidth: "12rem", height: "3.5rem" }}
                     variant="outlined"
                     onClick={handleShowLegendary}
                 >
                     {showLegendaryOnly ? 'Show All' : 'Show Legendary'}
                 </Button>
-                <FormControl sx={{ flex: '1 1 auto', maxWidth: "12rem", height: "4rem" }} variant="outlined">
+                <FormControl sx={{ flex: '1 1 auto', width: "4rem", maxWidth: "12rem", height: "3.5rem" }} variant="outlined">
                     <InputLabel>Type</InputLabel>
                     <Select
                         multiple
@@ -158,7 +158,7 @@ const PokemonList: React.FC = () => {
                         <MenuItem value="flying">Flying</MenuItem>
                     </Select>
                 </FormControl>
-                <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+                <FormControl variant="outlined" sx={{ minWidth: 200, width: "4rem" }}>
                     <InputLabel>Sort By</InputLabel>
                     <Select
                         value={sortOption}
@@ -197,7 +197,7 @@ const PokemonList: React.FC = () => {
                 <Button
                     variant="contained"
                     color="primary"
-                    sx={{ flex: '1 1 auto', maxWidth: "12rem", height: "3.5rem" }}
+                    sx={{ flex: '1 1 auto', maxWidth: "8rem", height: "3.5rem" }}
                     onClick={handleSearchClick}
                 >
                     Search

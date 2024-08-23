@@ -93,7 +93,7 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
             }
         }
         const paginatedPokemons = pokemons.slice(offset, offset + limit);
-        console.log(paginatedPokemons.length);
+
         const totalCount = pokemons.length;
         return { pokemons: paginatedPokemons, totalCount };
     } catch (err: any) {
