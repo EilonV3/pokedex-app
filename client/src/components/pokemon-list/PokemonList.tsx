@@ -3,18 +3,14 @@ import {
     Container,
     Grid,
     Typography,
-    MenuItem,
-    Select,
-    InputLabel,
-    FormControl,
     Box,
-    Pagination, SelectChangeEvent,
+    SelectChangeEvent,
 } from '@mui/material';
-import axios from 'axios';
 import { Pokemon } from '../../types/Pokemon';
 import PokemonCard from "../pokemon-card/PokemonCard.tsx";
 import PokemonFilter from "../pokemon-filter/PokemonFilter.tsx";
-
+import {fetchPokemons, catchPokemon} from "../../api/api.ts";
+import PaginationComponent from "../pagination/Pagination.tsx";
 const PokemonList: React.FC = () => {
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
     const [page, setPage] = useState(0);
@@ -27,34 +23,31 @@ const PokemonList: React.FC = () => {
     const [sortOption, setSortOption] = useState<string>('');
     const [showCaughtOnly, setShowCaughtOnly] = useState(false);
 
-    useEffect(() => {
-        fetchPokemons();
-    }, [page, resultsPerPage, showCaughtOnly, showLegendaryOnly, sortOption]);
-
-    const fetchPokemons = async () => {
+    const handleFetchPokemons = async () => {
         try {
-            const response = await axios.get(`/api/pokemons`, {
-                params: {
-                    limit: resultsPerPage,
-                    offset: page * resultsPerPage,
-                    name: search,
-                    types: typeFilter,
-                    min_experience: experienceRange[0],
-                    max_experience: experienceRange[1],
-                    show_legendary_only: showLegendaryOnly,
-                    sort: sortOption,
-                    show_caught_only: showCaughtOnly,
-                },
+            const data = await fetchPokemons({
+                limit: resultsPerPage,
+                offset: page * resultsPerPage,
+                name: search,
+                types: typeFilter,
+                min_experience: experienceRange[0],
+                max_experience: experienceRange[1],
+                show_legendary_only: showLegendaryOnly,
+                sort: sortOption,
+                show_caught_only: showCaughtOnly,
             });
-            setPokemons(response.data.pokemons);
-            setTotalCount(response.data.totalCount);
+            setPokemons(data.pokemons);
+            setTotalCount(data.totalCount);
         } catch (error) {
             console.error('Error fetching pokemons:', error);
         }
     };
+    useEffect(() => {
+        handleFetchPokemons();
+    }, [page, resultsPerPage, showCaughtOnly, showLegendaryOnly, sortOption]);
     const handleCatchPokemon = async (pokemonId: any) => {
         try {
-            await axios.post(`/api/pokemon/${pokemonId}/catch`);
+            await catchPokemon(pokemonId);
             setPokemons((prevPokemons) =>
                 prevPokemons.map((pokemon) =>
                     pokemon.id === pokemonId ? { ...pokemon, isCaught: true } : pokemon
@@ -66,17 +59,12 @@ const PokemonList: React.FC = () => {
     };
     const handleSearchClick = () => {
         setPage(0);
-        fetchPokemons();
+        handleFetchPokemons();
     };
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(event.target.value);
     };
-
-    // const handleTypeFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    //     setTypeFilter(event.target.value as string[]);
-    //     setPage(0);
-    // };
 
     const handleExperienceRangeChange = (_event: ChangeEvent, newValue: number[]) => {
         setExperienceRange(newValue as number[]);
@@ -86,7 +74,10 @@ const PokemonList: React.FC = () => {
         setShowCaughtOnly(event.target.checked);
     };
 
-    const handleShowLegendary = () => setShowLegendaryOnly(!showLegendaryOnly);
+    const handleShowLegendary = () => {
+        setShowLegendaryOnly(!showLegendaryOnly);
+        setPage(0);
+    };
 
     const handleChangePage = (_event: unknown, newPage: number) => {
         setPage(newPage - 1);
@@ -110,9 +101,10 @@ const PokemonList: React.FC = () => {
             setTypeFilter(value);
         }
     }
+    console.log(page);
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            fetchPokemons();
+            handleFetchPokemons();
             setPage(0);
         }
     };
@@ -158,29 +150,14 @@ const PokemonList: React.FC = () => {
 
                 ))}
             </Grid>
-            <Box display="flex" justifyContent="center" mt={4}>
-                <Pagination
-                    count={Math.ceil(totalCount! / resultsPerPage)}
-                    page={page + 1}
-                    onChange={handleChangePage}
-                    color="primary"
-                    shape="rounded"
-                    sx={{ margin: "1rem" }}
-                />
-                <FormControl sx={{ width: "8rem", height: "4rem", textAlign: "center" }} variant="outlined">
-                    <InputLabel>Results per page</InputLabel>
-                    <Select
-                        value={resultsPerPage.toString()}
-                        // @ts-ignore
-                        onChange={handleRowsPerPageChange}
-                        label="Results per page"
-                    >
-                        <MenuItem value={12}>12</MenuItem>
-                        <MenuItem value={24}>24</MenuItem>
-                        <MenuItem value={72}>72</MenuItem>
-                    </Select>
-                </FormControl>
-            </Box>
+            <PaginationComponent
+                totalCount={totalCount || 0}
+                resultsPerPage={resultsPerPage}
+                page={page}
+                onChangePage={handleChangePage}
+                // @ts-ignore
+                onRowsPerPageChange={handleRowsPerPageChange}
+            />
         </Container>
     );
 };
