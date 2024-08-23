@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Container, Grid, Typography, Box } from "@mui/material";
+import { Container, Grid, Box } from "@mui/material";
 import { Pokemon } from "../../types/Pokemon";
 import PokemonCard from "../pokemon-card/PokemonCard.tsx";
 import PokemonFilter from "../pokemon-filter/PokemonFilter.tsx";
 import PaginationComponent from "../pagination/Pagination.tsx";
 import useHandlers from "./useHandlers.ts";
 import useApiActions from "./useApiActions.ts";
+import Header from "../header/Header.tsx";
 const PokemonList: React.FC = () => {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [page, setPage] = useState(0);
@@ -61,22 +62,7 @@ const PokemonList: React.FC = () => {
 
   return (
     <Container sx={{ minWidth: "100%", fontFamily: '"Roboto", sans-serif' }}>
-      <Typography
-        variant="h2"
-        gutterBottom
-        align="center"
-        color="textPrimary"
-        sx={{
-          fontFamily: '"Pokemon Solid", sans-serif',
-          paddingTop: "2rem",
-          background: "linear-gradient(135deg, #FFD700 0%, #FFB800 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-        }}
-      >
-        Pokémon List
-      </Typography>
-
+      <Header />
       <Box
         mb={4}
         display="flex"
