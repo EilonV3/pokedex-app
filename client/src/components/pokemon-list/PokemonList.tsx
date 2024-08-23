@@ -27,7 +27,7 @@ const PokemonList: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
     const [experienceRange, setExperienceRange] = useState<number[]>([0, 1000]);
     const [showLegendaryOnly, setShowLegendaryOnly] = useState<boolean>(false);
-    const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
+    const [totalCount, setTotalCount] = useState<number | undefined>(0);
     const [sortOption, setSortOption] = useState<'name-asc' | 'name-desc' | 'experience-asc' | 'experience-desc'>();
     const [showCaughtOnly, setShowCaughtOnly] = useState(false);
 
