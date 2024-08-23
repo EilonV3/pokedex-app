@@ -58,14 +58,15 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
         if (maxExperience) {
             pokemons = pokemons.filter((pokemon: any) => pokemon.base_experience <= maxExperience);
         }
+        const caughtPokemonsIds = await getAllCaughtPokemons();
+        pokemons = pokemons.map((pokemon: { id: { toString: () => string; }; }) => ({
+            ...pokemon,
+            isCaught: caughtPokemonsIds.includes(pokemon.id.toString()),
+        }));
         const typesArray = types || []
         const isCaughtOnly = caughtOnly === 'true'
+
         if (isCaughtOnly) {
-            const caughtPokemonsIds = await getAllCaughtPokemons();
-            pokemons = pokemons.map((pokemon: { id: { toString: () => string; }; }) => ({
-                    ...pokemon,
-                    isCaught: caughtPokemonsIds.includes(pokemon.id.toString()),
-                }));
             pokemons = pokemons.filter((pokemon: { isCaught: any; }) => pokemon.isCaught);
         }
 

@@ -112,7 +112,11 @@ const PokemonList: React.FC = () => {
                 variant="h2"
                 gutterBottom
                 align="center"
-                sx={{ color: '#ffcb05', fontFamily: '"Pokemon Solid", sans-serif', paddingTop: "2rem" }}
+                color="textPrimary"
+                sx={{fontFamily: '"Pokemon Solid", sans-serif', paddingTop: "2rem", background: 'linear-gradient(135deg, #FFD700 0%, #FFB800 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                }}
             >
                 Pokémon List
             </Typography>
@@ -247,7 +251,24 @@ const PokemonList: React.FC = () => {
                                     Types: {pokemon.types.join(', ')}
                                 </Typography>
                                 {pokemon.isLegendary && (
-                                    <Typography color="textPrimary">Legendary!!</Typography>
+                                    <Typography
+                                        color="textPrimary"
+                                        sx={{
+                                            fontSize: '1.5rem',
+                                            fontWeight: 'bold',
+                                            background: 'linear-gradient(135deg, #FFD700 0%, #FFB800 100%)',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            animation: 'pulse 1.5s infinite',
+                                            '@keyframes pulse': {
+                                                '0%': { transform: 'scale(1)', textShadow: '0 0 1px rgba(255, 223, 0, 0.8), 0 0 2px rgba(255, 223, 0, 0.6)' },
+                                                '50%': { transform: 'scale(1.1)', textShadow: '0 0 2px rgba(255, 223, 0, 1), 0 0 8px rgba(255, 223, 0, 0.8)' },
+                                                '100%': { transform: 'scale(1)', textShadow: '0 0 1px rgba(255, 223, 0, 0.8), 0 0 2px rgba(255, 223, 0, 0.6)' },
+                                            },
+                                        }}
+                                    >
+                                        Legendary
+                                    </Typography>
                                 )}
                             </CardContent>
                             <Box p={1} display="flex" justifyContent="center">
