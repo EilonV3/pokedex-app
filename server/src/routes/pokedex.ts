@@ -14,13 +14,12 @@ router.get("/pokemons", async (req, res) => {
         const showLegendaryOnly = req.query.show_legendary_only as string;
         const types = req.query.types as string[];
         const sort = req.query.sort as string;
-
-        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, types, showLegendaryOnly, sort);
-
+        const caughtOnly = req.query.show_caught_only as string;
+        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, types, showLegendaryOnly, sort, caughtOnly);
         res.json({
             pokemons: data.pokemons,
             totalCount: data.totalCount,
-        });
+        })
     } catch (err: any) {
         res.status(500).json({ message: err.message });
     }

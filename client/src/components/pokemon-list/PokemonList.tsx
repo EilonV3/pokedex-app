@@ -14,7 +14,7 @@ import {
     Button,
     Box,
     Slider,
-    Pagination
+    Pagination, Checkbox, FormControlLabel
 } from '@mui/material';
 import axios from 'axios';
 import { Pokemon } from '../../types/Pokemon';
@@ -29,6 +29,7 @@ const PokemonList: React.FC = () => {
     const [showLegendaryOnly, setShowLegendaryOnly] = useState<boolean>(false);
     const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
     const [sortOption, setSortOption] = useState<'name-asc' | 'name-desc' | 'experience-asc' | 'experience-desc'>();
+    const [showCaughtOnly, setShowCaughtOnly] = useState(false);
 
     useEffect(() => {
         fetchPokemons();
@@ -46,6 +47,7 @@ const PokemonList: React.FC = () => {
                     max_experience: experienceRange[1],
                     show_legendary_only: showLegendaryOnly,
                     sort: sortOption,
+                    show_caught_only: showCaughtOnly,
                 },
             });
             setPokemons(response.data.pokemons);
@@ -54,7 +56,18 @@ const PokemonList: React.FC = () => {
             console.error('Error fetching pokemons:', error);
         }
     };
-
+    const handleCatchPokemon = async (pokemonId: any) => {
+        try {
+            await axios.post(`/api/pokemon/${pokemonId}/catch`);
+            setPokemons((prevPokemons) =>
+                prevPokemons.map((pokemon) =>
+                    pokemon.id === pokemonId ? { ...pokemon, isCaught: true } : pokemon
+                )
+            );
+        } catch (err) {
+            console.error('Error catching Pokémon:', err);
+        }
+    };
     const handleSearchClick = () => {
         setPage(0);
         fetchPokemons();
@@ -71,6 +84,10 @@ const PokemonList: React.FC = () => {
 
     const handleExperienceRangeChange = (event: Event, newValue: number | number[]) => {
         setExperienceRange(newValue as number[]);
+    };
+
+    const handleShowCaughtOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setShowCaughtOnly(event.target.checked);
     };
 
     const handleShowLegendary = () => setShowLegendaryOnly(!showLegendaryOnly);
@@ -167,6 +184,16 @@ const PokemonList: React.FC = () => {
                         aria-labelledby="experience-range-slider"
                     />
                 </Box>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={showCaughtOnly}
+                            onChange={handleShowCaughtOnlyChange}
+                            color="primary"
+                        />
+                    }
+                    label="Show Caught Only"
+                />
                 <Button
                     variant="contained"
                     color="primary"
@@ -224,8 +251,21 @@ const PokemonList: React.FC = () => {
                                 )}
                             </CardContent>
                             <Box p={1} display="flex" justifyContent="center">
-                                <Button variant="contained" color="primary">
-                                    Catch Pokémon
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => handleCatchPokemon(pokemon.id)}
+                                    sx={{
+                                        backgroundColor: pokemon.isCaught ? 'green' : 'primary.main',
+                                        animation: pokemon.isCaught ? 'caught 1s ease-in-out' : 'none',
+                                        '@keyframes caught': {
+                                            '0%': { transform: 'scale(1)' },
+                                            '50%': { transform: 'scale(1.2)' },
+                                            '100%': { transform: 'scale(1)' },
+                                        },
+                                    }}
+                                >
+                                    {pokemon.isCaught ? 'Caught!' : 'Catch Pokémon'}
                                 </Button>
                             </Box>
                         </Card>

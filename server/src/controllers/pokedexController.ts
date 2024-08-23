@@ -11,12 +11,13 @@ interface Pokemon {
     base_experience: number;
     types: string[];
     isLegendary?: boolean;
+    isCaught?: string;
 }
 const isPokemonLegendary = async (id: number) => {
     const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon-species/${id}/`);
     return response.data.is_legendary;
 };
-export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[], showLegendaryOnly?: string, sort?: string) => {
+export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[], showLegendaryOnly?: string, sort?: string, caughtOnly?: string) => {
     try {
         let pokemons;
         const cachedPokemons = await redisClient.get("pokemons");
@@ -58,6 +59,15 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
             pokemons = pokemons.filter((pokemon: any) => pokemon.base_experience <= maxExperience);
         }
         const typesArray = types || []
+        const isCaughtOnly = caughtOnly === 'true'
+        if (isCaughtOnly) {
+            const caughtPokemonsIds = await getAllCaughtPokemons();
+            pokemons = pokemons.map((pokemon: { id: { toString: () => string; }; }) => ({
+                    ...pokemon,
+                    isCaught: caughtPokemonsIds.includes(pokemon.id.toString()),
+                }));
+            pokemons = pokemons.filter((pokemon: { isCaught: any; }) => pokemon.isCaught);
+        }
 
         if (typesArray.length > 0) {
             pokemons = pokemons.filter((pokemon: { types: string[]; }) =>
@@ -82,8 +92,8 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
                     break;
             }
         }
-
         const paginatedPokemons = pokemons.slice(offset, offset + limit);
+        console.log(paginatedPokemons.length);
         const totalCount = pokemons.length;
         return { pokemons: paginatedPokemons, totalCount };
     } catch (err: any) {
