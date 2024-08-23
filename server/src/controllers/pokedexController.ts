@@ -1,7 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import redisClient from "../utils/redisClient";
-import fakePokemonData from "../utils/fakePokemonData";
 dotenv.config();
 const POKEAPI_BASE_URL = process.env.POKEAPI_BASE_URL;
 
@@ -100,7 +99,6 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
     } catch (err: any) {
         throw new Error(err.message);
     }
-    // return fakePokemonData.slice(0, limit);
 };
 
 export const getPokemonById = async (id: string) => {
