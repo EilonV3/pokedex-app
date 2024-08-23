@@ -60,49 +60,58 @@ const PokemonList: React.FC = () => {
     setSortOption,
   });
 
+  const filters = (
+    <Box
+      mb={4}
+      display="flex"
+      justifyContent="space-between"
+      flexWrap="wrap"
+      gap="1rem"
+    >
+      <PokemonFilter
+        search={search}
+        onSearchChange={handleSearchChange}
+        onSearchClick={handleSearchClick}
+        showLegendaryOnly={showLegendaryOnly}
+        onShowLegendaryToggle={handleShowLegendary}
+        typeFilter={typeFilter}
+        onTypeFilterChange={handleTypeFilterChange}
+        sortOption={sortOption}
+        onSortOptionChange={handleSortOptionChange}
+        experienceRange={experienceRange}
+        onExperienceRangeChange={handleExperienceRangeChange}
+        showCaughtOnly={showCaughtOnly}
+        onShowCaughtOnlyChange={handleShowCaughtOnlyChange}
+        onKeyDown={handleKeyDown}
+      />
+    </Box>
+  );
+  const grid = (
+    <Grid container spacing={4}>
+      {pokemons.map((pokemon) => (
+        <Grid item md={2} key={pokemon.id}>
+          <PokemonCard pokemon={pokemon} onCatch={handleCatchPokemon} />
+        </Grid>
+      ))}
+    </Grid>
+  );
+
+  const pagination = (
+    <PaginationComponent
+      totalCount={totalCount || 0}
+      resultsPerPage={resultsPerPage}
+      page={page}
+      onChangePage={handleChangePage}
+      // @ts-ignore
+      onRowsPerPageChange={handleRowsPerPageChange}
+    />
+  );
   return (
     <Container sx={{ minWidth: "100%", fontFamily: '"Roboto", sans-serif' }}>
       <Header />
-      <Box
-        mb={4}
-        display="flex"
-        justifyContent="space-between"
-        flexWrap="wrap"
-        gap="1rem"
-      >
-        <PokemonFilter
-          search={search}
-          onSearchChange={handleSearchChange}
-          onSearchClick={handleSearchClick}
-          showLegendaryOnly={showLegendaryOnly}
-          onShowLegendaryToggle={handleShowLegendary}
-          typeFilter={typeFilter}
-          onTypeFilterChange={handleTypeFilterChange}
-          sortOption={sortOption}
-          onSortOptionChange={handleSortOptionChange}
-          experienceRange={experienceRange}
-          onExperienceRangeChange={handleExperienceRangeChange}
-          showCaughtOnly={showCaughtOnly}
-          onShowCaughtOnlyChange={handleShowCaughtOnlyChange}
-          onKeyDown={handleKeyDown}
-        />
-      </Box>
-
-      <Grid container spacing={4}>
-        {pokemons.map((pokemon) => (
-          <Grid item md={2} key={pokemon.id}>
-            <PokemonCard pokemon={pokemon} onCatch={handleCatchPokemon} />
-          </Grid>
-        ))}
-      </Grid>
-      <PaginationComponent
-        totalCount={totalCount || 0}
-        resultsPerPage={resultsPerPage}
-        page={page}
-        onChangePage={handleChangePage}
-        // @ts-ignore
-        onRowsPerPageChange={handleRowsPerPageChange}
-      />
+      {filters}
+      {grid}
+      {pagination}
     </Container>
   );
 };
