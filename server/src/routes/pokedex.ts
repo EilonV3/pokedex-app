@@ -13,7 +13,10 @@ router.get("/pokemons", async (req, res) => {
         const maxExperience = parseInt(req.query.max_experience as string);
         const showLegendaryOnly = req.query.show_legendary_only as string;
         const types = req.query.types as string[];
-        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, types, showLegendaryOnly);
+        const sort = req.query.sort as string;
+
+        const data = await getPokemons(limit, offset, name, minExperience, maxExperience, types, showLegendaryOnly, sort);
+
         res.json({
             pokemons: data.pokemons,
             totalCount: data.totalCount,

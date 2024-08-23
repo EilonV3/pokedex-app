@@ -16,7 +16,7 @@ const isPokemonLegendary = async (id: number) => {
     const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon-species/${id}/`);
     return response.data.is_legendary;
 };
-export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[], showLegendaryOnly?: string) => {
+export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[], showLegendaryOnly?: string, sort?: string) => {
     try {
         let pokemons;
         const cachedPokemons = await redisClient.get("pokemons");
@@ -63,6 +63,24 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
             pokemons = pokemons.filter((pokemon: { types: string[]; }) =>
                 pokemon.types.some((type: string) => typesArray.includes(type))
             );
+        }
+        if (sort) {
+            switch (sort) {
+                case "name-asc":
+                    pokemons.sort((a: { name: string; }, b: { name: any; }) => a.name.localeCompare(b.name));
+                    break;
+                case "name-desc":
+                    pokemons.sort((a: { name: any; }, b: { name: string; }) => b.name.localeCompare(a.name));
+                    break;
+                case "experience-asc":
+                    pokemons.sort((a: { base_experience: number; }, b: { base_experience: number; }) => a.base_experience - b.base_experience);
+                    break;
+                case "experience-desc":
+                    pokemons.sort((a: { base_experience: number; }, b: { base_experience: number; }) => b.base_experience - a.base_experience);
+                    break;
+                default:
+                    break;
+            }
         }
 
         const paginatedPokemons = pokemons.slice(offset, offset + limit);
