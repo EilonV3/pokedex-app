@@ -22,7 +22,7 @@ import { Pokemon } from '../../types/Pokemon';
 const PokemonList: React.FC = () => {
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
     const [page, setPage] = useState(0);
-    const [resultsPerPage, setResultsPerPage] = useState(10);
+    const [resultsPerPage, setResultsPerPage] = useState(12);
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState<string[]>([]);
     const [experienceRange, setExperienceRange] = useState<number[]>([0, 1000]);
@@ -290,9 +290,9 @@ const PokemonList: React.FC = () => {
                         onChange={handleRowsPerPageChange}
                         label="Results per page"
                     >
-                        <MenuItem value={10}>10</MenuItem>
-                        <MenuItem value={20}>20</MenuItem>
-                        <MenuItem value={30}>30</MenuItem>
+                        <MenuItem value={12}>12</MenuItem>
+                        <MenuItem value={24}>24</MenuItem>
+                        <MenuItem value={72}>72</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
