@@ -62,10 +62,10 @@ const PokemonList: React.FC = () => {
         setSearch(event.target.value);
     };
 
-    const handleTypeFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-        setTypeFilter(event.target.value as string[]);
-        setPage(0);
-    };
+    // const handleTypeFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    //     setTypeFilter(event.target.value as string[]);
+    //     setPage(0);
+    // };
 
     const handleExperienceRangeChange = (event: Event, newValue: number | number[]) => {
         setExperienceRange(newValue as number[]);
@@ -113,7 +113,14 @@ const PokemonList: React.FC = () => {
                     <Select
                         multiple
                         value={typeFilter}
-                        onChange={handleTypeFilterChange}
+                        onChange={(event) => {
+                            const value = event.target.value;
+                            if (value.includes("")) {
+                                setTypeFilter([]); // Clear all selected filters
+                            } else {
+                                setTypeFilter(value); // Set the selected filters
+                            }
+                        }}
                         label="Type"
                     >
                         <MenuItem value="">Clear All</MenuItem>
@@ -153,10 +160,9 @@ const PokemonList: React.FC = () => {
                     <Grid item xs={12} sm={6} md={4} lg={3} key={pokemon.id}>
                         <Card
                             sx={{
-                                minWidth: '14rem',
+                                width: '14rem',
                                 height: '100%',
-                                minHeight: '16rem',
-                                maxHeight: '20rem',
+                                maxHeight: '22rem',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',
@@ -165,33 +171,44 @@ const PokemonList: React.FC = () => {
                                     ? '0 0 10px 5px rgba(255, 215, 0, 0.5)'
                                     : '',
                                 animation: pokemon.isLegendary
-                                    ? 'glow 1.5s infinite alternate'
+                                    ? 'glow 0.8s infinite alternate'
                                     : 'none',
                                 '@keyframes glow': {
                                     '0%': { boxShadow: '0 0 5px gold' },
-                                    '100%': { boxShadow: '0 0 20px gold' },
+                                    '100%': { boxShadow: '1px 1px 16px gold' },
                                 },
                             }}
                         >
                             <CardMedia
                                 component="img"
-                                height="140"
-                                image={`https://img.pokemondb.net/artwork/large/${pokemon.name}.jpg`}
+                                sx={{
+                                    height: '120px', // Reducing image height
+                                    objectFit: 'contain', // Make sure the image scales properly
+                                    padding: '8px', // Add padding to make the image fit better
+                                }}
+                                image={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${pokemon.id}.svg`}
                                 alt={pokemon.name}
                             />
-                            <CardContent>
+                            <CardContent sx={{ padding: '8px', textAlign: 'center' }}>
                                 <Typography variant="h6">{pokemon.name}</Typography>
-                                <Typography color="textSecondary">Base Experience: {pokemon.base_experience}</Typography>
-                                <Typography color="textSecondary">Types: {pokemon.types.join(', ')}</Typography>
-                                {pokemon.isLegendary && <Typography color="textPrimary">Legendary!!</Typography>}
+                                <Typography color="textSecondary">
+                                    Base Experience: {pokemon.base_experience}
+                                </Typography>
+                                <Typography color="textSecondary">
+                                    Types: {pokemon.types.join(', ')}
+                                </Typography>
+                                {pokemon.isLegendary && (
+                                    <Typography color="textPrimary">Legendary!!</Typography>
+                                )}
                             </CardContent>
-                            <Box p={2} display="flex" justifyContent="center">
+                            <Box p={1} display="flex" justifyContent="center">
                                 <Button variant="contained" color="primary">
                                     Catch Pokémon
                                 </Button>
                             </Box>
                         </Card>
                     </Grid>
+
                 ))}
             </Grid>
             <Box display="flex" justifyContent="center" mt={4}>
