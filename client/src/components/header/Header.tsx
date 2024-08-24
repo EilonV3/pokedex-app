@@ -15,7 +15,7 @@ const PokemonListHeader: React.FC = () => (
       WebkitTextFillColor: "transparent",
     }}
   >
-    Pokémon List
+      Pokédex
   </Typography>
 );
 
