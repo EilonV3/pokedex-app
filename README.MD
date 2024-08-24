@@ -67,3 +67,15 @@ Welcome to the Pokedex!
 * Identify caught Pokemons: Display only those that were caught by the user.
 * Pagination: Navigate through large lists of Pokemons with pagination controls.
 * API Integration: Fetch data from the Pokémon API and cache it using Redis for improved performance.
+
+## Approach and Assumptions
+
+### Approach:
+* The Pokedex app was built with a strong emphasis on modularity and performance. 
+* The backend leverages Redis for caching to reduce API calls and enhance response times.
+* On the frontend, the app delivers a seamless user experience with features like dynamic filtering, sorting, and pagination.
+
+### Assumptions:
+- **Data Consistency**: It is assumed that the data retrieved from the Pokemon API is accurate and regularly updated.
+    Given that new Pokemon are not frequently added, caching via Redis is expected to be effective over long periods.
+- **Redis Availability**: The availability and proper configuration of Redis are assumed for caching purposes, ensuring smooth operation and performance.
