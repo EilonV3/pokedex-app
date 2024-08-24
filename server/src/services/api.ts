@@ -5,7 +5,7 @@ dotenv.config();
 const POKEAPI_BASE_URL = process.env.POKEAPI_BASE_URL;
 
 export const fetchPokemonData = async () => {
-    return await axios.get(`${POKEAPI_BASE_URL}/pokemon?limit=500&offset=0`);
+    return await axios.get(`${POKEAPI_BASE_URL}/pokemon?limit=900&offset=0`);
 };
 
 export const fetchPokemonById = async (id: string) => {
