@@ -30,7 +30,7 @@ const usePokemonActions = ({
       const data = await fetchPokemons({
         limit: resultsPerPage,
         offset: page * resultsPerPage,
-        name: search,
+        name: search.toLowerCase(),
         types: typeFilter,
         min_experience: experienceRange[0],
         max_experience: experienceRange[1],
