@@ -10,7 +10,7 @@ app.use(express.json());
 dotenv.config();
 const port = process.env.PORT || 3000;
 
-app.use('/api',pokedexRoutes)
+app.use("/api", pokedexRoutes);
 
 app.listen(port, () => {
   console.log(`Server running at port ${port}`);

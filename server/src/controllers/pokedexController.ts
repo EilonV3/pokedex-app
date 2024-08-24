@@ -1,6 +1,18 @@
 import axios from "axios";
 import dotenv from "dotenv";
-import redisClient from "../utils/redisClient";
+import redisClient from "../services/redisClient";
+import {
+    filterByName,
+    filterByLegendaryStatus,
+    filterByExperience,
+    filterByCaughtStatus,
+    filterByTypes,
+    sortPokemons,
+    paginatePokemons,
+    getTotalCount,
+    markCaughtPokemons,
+} from "../utils/helpers";
+
 dotenv.config();
 const POKEAPI_BASE_URL = process.env.POKEAPI_BASE_URL;
 
@@ -10,7 +22,7 @@ interface Pokemon {
     base_experience: number;
     types: string[];
     isLegendary?: boolean;
-    isCaught?: string;
+    isCaught?: boolean;
 }
 const isPokemonLegendary = async (id: number) => {
     const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon-species/${id}/`);
@@ -18,7 +30,7 @@ const isPokemonLegendary = async (id: number) => {
 };
 export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[], showLegendaryOnly?: string, sort?: string, caughtOnly?: string) => {
     try {
-        let pokemons;
+        let pokemons: Pokemon[];
         const cachedPokemons = await redisClient.get("pokemons");
         if (cachedPokemons) {
             pokemons = JSON.parse(cachedPokemons);
@@ -37,64 +49,19 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
                 };
             }));
             await redisClient.set("pokemons", JSON.stringify(detailedPokemons));
-
             pokemons = detailedPokemons;
         }
 
-        if (name) {
-            pokemons = pokemons.filter((pokemon: any) => pokemon.name.includes(name));
-        }
-        const showLegendaryOnlyFlag = showLegendaryOnly === "true";
+        pokemons = filterByName(pokemons, name);
+        pokemons = filterByLegendaryStatus(pokemons, showLegendaryOnly);
+        pokemons = filterByExperience(pokemons, minExperience, maxExperience);
+        pokemons = await filterByCaughtStatus(pokemons, caughtOnly);
+        pokemons = filterByTypes(pokemons, types);
+        pokemons = sortPokemons(pokemons, sort);
+        pokemons = await markCaughtPokemons(pokemons);
+        const paginatedPokemons = paginatePokemons(pokemons, limit, offset);
+        const totalCount = getTotalCount(pokemons);
 
-        if (showLegendaryOnlyFlag) {
-            pokemons = pokemons.filter((pokemon:any) => pokemon.isLegendary);
-        }
-
-        if (minExperience) {
-            pokemons = pokemons.filter((pokemon: any) => pokemon.base_experience >= minExperience);
-        }
-
-        if (maxExperience) {
-            pokemons = pokemons.filter((pokemon: any) => pokemon.base_experience <= maxExperience);
-        }
-        const caughtPokemonsIds = await getAllCaughtPokemons();
-        pokemons = pokemons.map((pokemon: { id: { toString: () => string; }; }) => ({
-            ...pokemon,
-            isCaught: caughtPokemonsIds.includes(pokemon.id.toString()),
-        }));
-        const typesArray = types || []
-        const isCaughtOnly = caughtOnly === 'true'
-
-        if (isCaughtOnly) {
-            pokemons = pokemons.filter((pokemon: { isCaught: any; }) => pokemon.isCaught);
-        }
-
-        if (typesArray.length > 0) {
-            pokemons = pokemons.filter((pokemon: { types: string[]; }) =>
-                pokemon.types.some((type: string) => typesArray.includes(type))
-            );
-        }
-        if (sort) {
-            switch (sort) {
-                case "name-asc":
-                    pokemons.sort((a: { name: string; }, b: { name: any; }) => a.name.localeCompare(b.name));
-                    break;
-                case "name-desc":
-                    pokemons.sort((a: { name: any; }, b: { name: string; }) => b.name.localeCompare(a.name));
-                    break;
-                case "experience-asc":
-                    pokemons.sort((a: { base_experience: number; }, b: { base_experience: number; }) => a.base_experience - b.base_experience);
-                    break;
-                case "experience-desc":
-                    pokemons.sort((a: { base_experience: number; }, b: { base_experience: number; }) => b.base_experience - a.base_experience);
-                    break;
-                default:
-                    break;
-            }
-        }
-        const paginatedPokemons = pokemons.slice(offset, offset + limit);
-
-        const totalCount = pokemons.length;
         return { pokemons: paginatedPokemons, totalCount };
     } catch (err: any) {
         throw new Error(err.message);
@@ -102,12 +69,12 @@ export const getPokemons = async (limit: number, offset: number, name?: string, 
 };
 
 export const getPokemonById = async (id: string) => {
-  try {
-    const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon/${id}`);
-    return response.data;
-  } catch (err: any) {
-      throw new Error(err.message);
-  }
+    try {
+        const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon/${id}`);
+        return response.data;
+    } catch (err: any) {
+        throw new Error(err.message);
+    }
 };
 
 export const catchPokemon = async (id: string) => {
@@ -127,13 +94,14 @@ export const getAllCaughtPokemons = async () => {
         console.error('Error getting all caught pokemons: ', err);
         throw new Error('Failed to get all caught pokemons');
     }
-}
+};
+
 export const isPokemonCaught = async (id: string) => {
     try {
-        const isCaught = await redisClient.sismember('caughtPokemons', id)
+        const isCaught = await redisClient.sismember('caughtPokemons', id);
         return Boolean(isCaught);
     } catch (err) {
         console.error(`Error checking if Pokemon with the id of ${id} was caught: `, err);
         throw new Error(`Failed to check the status of Pokemon with the id of ${id}`);
     }
-}
+};
