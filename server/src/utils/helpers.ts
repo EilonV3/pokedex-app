@@ -32,7 +32,7 @@ export const filterByCaughtStatus = async (pokemons: any[], caughtOnly?: string)
     return pokemons;
 };
 
-export const filterByTypes = (pokemons: any[], types?: string[]) => {
+export const filterByTypes = (pokemons: any[], types?: string | undefined) => {
     if (types && types.length > 0) {
         return pokemons.filter(pokemon =>
             pokemon.types.some((type: string) => types.includes(type))

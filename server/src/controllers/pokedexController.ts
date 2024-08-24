@@ -1,107 +1,77 @@
-import axios from "axios";
-import dotenv from "dotenv";
-import redisClient from "../services/redisClient";
+import { Request, Response } from 'express';
 import {
-    filterByName,
-    filterByLegendaryStatus,
-    filterByExperience,
-    filterByCaughtStatus,
-    filterByTypes,
-    sortPokemons,
-    paginatePokemons,
-    getTotalCount,
-    markCaughtPokemons,
-} from "../utils/helpers";
+    getPokemons,
+    getPokemonById,
+    catchPokemon,
+    isPokemonCaught,
+    getAllCaughtPokemons,
+} from '../services/pokemonService';
 
-dotenv.config();
-const POKEAPI_BASE_URL = process.env.POKEAPI_BASE_URL;
-
-interface Pokemon {
-    id: number;
-    name: string;
-    base_experience: number;
-    types: string[];
-    isLegendary?: boolean;
-    isCaught?: boolean;
-}
-const isPokemonLegendary = async (id: number) => {
-    const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon-species/${id}/`);
-    return response.data.is_legendary;
-};
-export const getPokemons = async (limit: number, offset: number, name?: string, minExperience?: number, maxExperience?: number, types?: string[], showLegendaryOnly?: string, sort?: string, caughtOnly?: string) => {
+export const getPokemonsController = async (req: Request, res: Response) => {
     try {
-        let pokemons: Pokemon[];
-        const cachedPokemons = await redisClient.get("pokemons");
-        if (cachedPokemons) {
-            pokemons = JSON.parse(cachedPokemons);
-        } else {
-            const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon?limit=500&offset=0`);
-            const results = response.data.results;
-            const detailedPokemons = await Promise.all(results.map(async (pokemon: any) => {
-                const pokemonData = await axios.get(pokemon.url);
-                const isLegendary = await isPokemonLegendary(pokemonData.data.id);
-                return {
-                    id: pokemonData.data.id,
-                    name: pokemonData.data.name,
-                    base_experience: pokemonData.data.base_experience,
-                    types: pokemonData.data.types.map((t: any) => t.type.name),
-                    isLegendary,
-                };
-            }));
-            await redisClient.set("pokemons", JSON.stringify(detailedPokemons));
-            pokemons = detailedPokemons;
-        }
+        const limit = parseInt(req.query.limit as string, 10) || 10;
+        const offset = parseInt(req.query.offset as string, 10) || 0;
+        const name = req.query.name as string;
+        const minExperience = req.query.min_experience ? parseInt(req.query.min_experience as string, 10) : undefined;
+        const maxExperience = req.query.max_experience ? parseInt(req.query.max_experience as string, 10) : undefined;
+        const types = req.query.types ? (req.query.types as string) : undefined;
+        const showLegendaryOnly = req.query.show_legendary_only as string;
+        const sort = req.query.sort as string;
+        const caughtOnly = req.query.show_caught_only as string;
 
-        pokemons = filterByName(pokemons, name);
-        pokemons = filterByLegendaryStatus(pokemons, showLegendaryOnly);
-        pokemons = filterByExperience(pokemons, minExperience, maxExperience);
-        pokemons = await filterByCaughtStatus(pokemons, caughtOnly);
-        pokemons = filterByTypes(pokemons, types);
-        pokemons = sortPokemons(pokemons, sort);
-        pokemons = await markCaughtPokemons(pokemons);
-        const paginatedPokemons = paginatePokemons(pokemons, limit, offset);
-        const totalCount = getTotalCount(pokemons);
+        const data = await getPokemons(
+            limit,
+            offset,
+            name,
+            minExperience,
+            maxExperience,
+            types,
+            showLegendaryOnly,
+            sort,
+            caughtOnly,
+        );
 
-        return { pokemons: paginatedPokemons, totalCount };
+        res.json(data);
     } catch (err: any) {
-        throw new Error(err.message);
+        res.status(500).json({ message: err.message });
     }
 };
 
-export const getPokemonById = async (id: string) => {
+export const getPokemonByIdController = async (req: Request, res: Response) => {
+    const { id } = req.params;
     try {
-        const response = await axios.get(`${POKEAPI_BASE_URL}/pokemon/${id}`);
-        return response.data;
+        const data = await getPokemonById(id);
+        res.json(data);
     } catch (err: any) {
-        throw new Error(err.message);
+        res.status(500).json({ message: err.message });
     }
 };
 
-export const catchPokemon = async (id: string) => {
+export const catchPokemonController = async (req: Request, res: Response) => {
+    const { id } = req.params;
     try {
-        await redisClient.sadd('caughtPokemons', id);
-        return { success: true };
-    } catch (error) {
-        console.error(`Error catching Pokémon #${id}:`, error);
-        throw new Error(`Failed to catch Pokémon #${id}.`);
+        await catchPokemon(id);
+        res.status(200).json({ message: `Caught Pokémon with ID #${id}` });
+    } catch (err: any) {
+        res.status(500).json({ message: err.message });
     }
 };
 
-export const getAllCaughtPokemons = async () => {
+export const isPokemonCaughtController = async (req: Request, res: Response) => {
+    const { id } = req.params;
     try {
-        return redisClient.smembers('caughtPokemons');
-    } catch (err) {
-        console.error('Error getting all caught pokemons: ', err);
-        throw new Error('Failed to get all caught pokemons');
+        const caught = await isPokemonCaught(id);
+        res.json({ caught });
+    } catch (err: any) {
+        res.status(500).json({ message: err.message });
     }
 };
 
-export const isPokemonCaught = async (id: string) => {
+export const getAllCaughtPokemonsController = async (req: Request, res: Response) => {
     try {
-        const isCaught = await redisClient.sismember('caughtPokemons', id);
-        return Boolean(isCaught);
-    } catch (err) {
-        console.error(`Error checking if Pokemon with the id of ${id} was caught: `, err);
-        throw new Error(`Failed to check the status of Pokemon with the id of ${id}`);
+        const caughtPokemons = await getAllCaughtPokemons();
+        res.json(caughtPokemons);
+    } catch (err: any) {
+        res.status(500).json({ message: err.message });
     }
 };
