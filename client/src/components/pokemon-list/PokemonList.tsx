@@ -7,6 +7,7 @@ import PaginationComponent from "../pagination/Pagination.tsx";
 import useHandlers from "./useHandlers.ts";
 import useApiActions from "./useApiActions.ts";
 import Header from "../header/Header.tsx";
+import Loader from "../loader/Loader.tsx";
 const PokemonList: React.FC = () => {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [page, setPage] = useState(0);
@@ -110,7 +111,7 @@ const PokemonList: React.FC = () => {
     <Container sx={{ minWidth: "100%", fontFamily: '"Roboto", sans-serif' }}>
       <Header />
       {filters}
-      {grid}
+      {pokemons.length === 0 ? <Loader/> : grid}
       {pagination}
     </Container>
   );
