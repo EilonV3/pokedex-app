@@ -48,7 +48,7 @@ Welcome to the Pokedex!
    cd server
 2. start it:
    ```bash
-   yarn start
+   yarn dev
 3. Navigate to client:
    ```bash
    cd ../client
