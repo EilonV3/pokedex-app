@@ -38,7 +38,7 @@ const PaginationComponent: React.FC<PaginationComponentProps> = ({
         sx={{ margin: "1rem" }}
       />
       <FormControl
-        sx={{ width: "8rem", height: "4rem", textAlign: "center" }}
+        sx={{ width: "9rem", height: "4rem", textAlign: "center" }}
         variant="outlined"
       >
         <InputLabel>Results per page</InputLabel>
